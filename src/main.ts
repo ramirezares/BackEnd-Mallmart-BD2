@@ -17,13 +17,8 @@ async function bootstrap() {
   // Configuro Swagger
   const config = new DocumentBuilder()
     .setTitle('Mallmart API')
-    .setDescription('API para la tienda Mallmart')
+    .setDescription('Documentacion de la API para la tienda Mallmart. Descripcion y sintaxis de cada endpoint, con su ejemplo y respuesta.')
     .setVersion('1.0')
-    .addTag('Users')
-    .addTag('Products')
-    .addTag('Categories')
-    .addTag('Carts')
-    .addTag('Engagements')
     .build();
   
   const document = SwaggerModule.createDocument(app, config);

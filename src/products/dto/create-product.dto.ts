@@ -3,7 +3,7 @@ import { IsString, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateProductDto {
 
-    // Colocare a todas las variables
+    //TODO - Colocarle a todas los atributos
     // el decorador api property
 
     @ApiProperty(

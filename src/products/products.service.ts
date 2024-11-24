@@ -7,7 +7,7 @@ import { Session } from 'neo4j-driver';
 @Injectable()
 export class ProductsService {
 
-  constructor(private readonly neo4jService: Neo4jConnectionService) { }
+  constructor(private readonly neo4jService: Neo4jConnectionService) {}
 
   async count() {
     const session: Session = await this.neo4jService.getSession();
