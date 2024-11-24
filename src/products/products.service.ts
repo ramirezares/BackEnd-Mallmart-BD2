@@ -33,9 +33,7 @@ export class ProductsService {
 
       const productsArray = result.records.map(record => record.get('n').properties);
 
-      const firstFiveProducts = productsArray.slice(0, 5);
-
-      return firstFiveProducts
+      return productsArray;
     }
     catch (error) {
       console.error('Error al ejecutar la query:', error);
