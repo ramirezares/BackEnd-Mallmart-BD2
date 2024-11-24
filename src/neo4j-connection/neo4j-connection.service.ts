@@ -37,7 +37,7 @@ export class Neo4jConnectionService implements OnModuleInit, OnModuleDestroy {
         await this.driver?.close();
     }
 
-    async getSession(database?: string): Promise<Session> {
+    async getSession(): Promise<Session> {
         
         // Espera la promesa de la peticion al driver
         await this.driverInitializatedPromise;
@@ -47,7 +47,7 @@ export class Neo4jConnectionService implements OnModuleInit, OnModuleDestroy {
             throw new Error('El driver de Neo4j no esta listo');
         }
 
-        return this.driver.session({ database });
+        return this.driver.session();
     }
 }
 

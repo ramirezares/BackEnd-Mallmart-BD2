@@ -15,17 +15,19 @@ async function bootstrap() {
   ));
 
   // Configuro Swagger
-  /* 
   const config = new DocumentBuilder()
     .setTitle('Mallmart API')
     .setDescription('API para la tienda Mallmart')
     .setVersion('1.0')
-    .addTag('Products') //Añadir mas tags
+    .addTag('Users')
+    .addTag('Products')
+    .addTag('Categories')
+    .addTag('Carts')
+    .addTag('Engagements')
     .build();
   
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
-  */
 
   // Habilito el CORS
   app.enableCors(
@@ -36,7 +38,7 @@ async function bootstrap() {
     }
   );
 
-  //app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api');
 
 
   await app.listen(process.env.PORT ?? 3000);
