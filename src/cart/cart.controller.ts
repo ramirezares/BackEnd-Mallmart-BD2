@@ -16,7 +16,7 @@ export class CartController {
 
   @Get('/:userEmail')
   findOne(@Param('userEmail') userEmail: string) {
-    return this.cartService.findOne(userEmail);
+    return this.cartService.getProductsOfCart(userEmail);
   }
 
   @Patch('/update/:userEmail') 

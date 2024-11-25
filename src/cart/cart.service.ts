@@ -56,17 +56,17 @@ export class CartService {
     }
     try {
       const result = await session.run(
-        `CREATE (n:Cart {
+        `CREATE (c:Cart {
                     cartId: $cartId, 
                     userEmail: $userEmail, 
                     totalAmount: $totalAmount, 
                     totalQuantity: $totalQuantity
                 })
-        WITH n
-        MATCH (u:User {userEmail: $userEmail}),(n:Cart {userEmail:$userEmail})
-        WITH u,n
-        CREATE (n)-[:OWNED_BY]->(u)
-        RETURN n`,
+        WITH c
+        MATCH (u:User {userEmail: $userEmail}),(c:Cart {userEmail:$userEmail})
+        WITH u,c
+        CREATE (c)-[:OWNED_BY]->(u)
+        RETURN c`,
         {
           cartId: cartId,
           userEmail: userEmail,
@@ -77,7 +77,8 @@ export class CartService {
       return { message: 'Carrito creado correctamente', cart: result.records[0].get('n').properties };
 
     } catch (error) {
-      console.error('Error al ejecutar la query:', error);
+      await session.close()
+      throw new InternalServerErrorException('Error al crear el carrito')
     }
   }
 
@@ -92,15 +93,13 @@ export class CartService {
       return cart
 
     } catch (error) {
-      console.error('Error al ejecutar la query:', error);
+      await session.close()
+      throw new NotFoundException('No se encontró el carrito')
     }
   }
 
   async update(userEmail: string, updateCartDto: UpdateCartDto) {
     const { totalAmount, totalQuantity } = updateCartDto
-
-    const amountToAdd = totalAmount
-    const quantityToAdd = totalQuantity
 
     const session: Session = await this.neo4jService.getSession();
 
@@ -116,13 +115,13 @@ export class CartService {
     try {
       const result = await session.run(
         `MATCH (c:Cart {userEmail: $userEmail})
-         SET c.totalAmount = c.totalAmount + $additionalAmount,
-         c.totalQuantity = c.totalQuantity + $additionalQuantity
+         SET c.totalAmount = c.totalAmount
+         c.totalQuantity = c.totalQuantity
          RETURN c`,
         {
           userEmail: userEmail,
-          additionalAmount: amountToAdd,
-          additionalQuantity: quantityToAdd
+          totalAmount: totalAmount,
+          totalQuantity: totalQuantity
         }
       )
       return {
@@ -135,4 +134,37 @@ export class CartService {
     }
   }
 
+  async getProductsOfCart(userEmail: string) {
+    const session: Session = await this.neo4jService.getSession();
+
+    //Valido que exista el usuario
+    const user = await session.run(
+      'MATCH (u:User {userEmail: $userEmail}) RETURN u',
+      { userEmail: userEmail }
+    )
+    if (user.records.length === 0) {
+      await session.close();
+      throw new NotFoundException('No se encontró el usuario')
+    }
+    try {
+      // Busco los productos en el carrito y su cantidad
+      const result = await session.run(
+        `MATCH (c:Cart {userEmail: $userEmail})-[r:REGISTER]->(p:Product)
+        RETURN p, toInteger(r.quantity) AS quantity`, // Convertir a número
+        { userEmail: userEmail }
+      );
+
+      // Extraer los productos y sus cantidades del resultado
+      const products = result.records.map(record => {
+        const productProperties = record.get('p').properties; // Propiedades del producto
+        const quantity = record.get('quantity').low; // Obtiene la cantidad ya convertida a número
+        return [productProperties, quantity]; // Devuelve un arreglo con propiedades del producto y cantidad
+      });
+
+      return products
+    } catch {
+      await session.close()
+      throw new InternalServerErrorException('Error al obtener los productos del carrito')
+    }
+  }
 }

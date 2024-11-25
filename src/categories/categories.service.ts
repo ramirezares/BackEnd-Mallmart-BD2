@@ -39,22 +39,6 @@ export class CategoriesService {
     }
   }
 
-  async getCatNames() {
-    const session: Session = await this.neo4jService.getSession();
-    try {
-      const result = await session.run(
-        'MATCH (c:Category) RETURN c.name'
-      );
-
-      const categoriesArray = result.records.map(record => record.get('c.name'));
-
-      return categoriesArray;
-    }
-    catch (error) {
-      console.error('Error al ejecutar la query:', error);
-    }
-  }
-
   // Al crear el nombre debe estar todo en minusculas
   async create(CreateCategoryDto: CreateCategoryDto) {
     const { name } = CreateCategoryDto;

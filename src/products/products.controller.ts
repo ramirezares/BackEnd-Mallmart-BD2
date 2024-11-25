@@ -3,6 +3,8 @@ import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { get } from 'http';
+import { AddToCartDto } from './dto/addToCart-product.dto';
 
 @ApiTags('Products')
 @Controller('products')
@@ -31,13 +33,23 @@ export class ProductsController {
     return this.productsService.findOne(id);
   }
 
-  @Delete('/erase/:id')
-  remove(@Param('id') id: string) {
-    return this.productsService.remove(id);
-  }
-
   @Get('/top/five')
   async getTopFive() {
     return this.productsService.getTopFive();
+  }
+
+  @Get("/categoryID/:categoryID")
+  async getByCategory(@Param('categoryID') categoryID: string){
+    return this.productsService.findByCategoryID(categoryID);
+  }
+
+  @Post('/addToCart')
+  async addToCart(@Body() addToCartDto: AddToCartDto) {
+    return this.productsService.addToCart(addToCartDto);
+  }
+
+  @Delete('/erase/:id')
+  remove(@Param('id') id: string) {
+    return this.productsService.remove(id);
   }
 }

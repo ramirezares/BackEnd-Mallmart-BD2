@@ -11,7 +11,7 @@ export class CategoriesController {
 
   @Get('/all')
   findAll() {
-    return this.categoriesService.getCatNames();
+    return this.categoriesService.findAll();
   }
 
   @Post('/create')
