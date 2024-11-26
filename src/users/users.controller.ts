@@ -13,14 +13,12 @@ export class UsersController {
 
   //TODO: - Documentar para Swagger
 
+    //getProfile
+  
+
   @Post("/register")
   async create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.register(createUserDto);
-  }
-
-  @Get('/userData/:userEmail')
-  async findOne(@Param('userEmail') userEmail: string) {
-    return this.usersService.findOne(userEmail);
   }
 
   @Delete('/erase/:userEmail')

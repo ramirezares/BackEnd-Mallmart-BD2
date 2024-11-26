@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsOptional } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsNotEmpty, IsPositive, Matches } from 'class-validator';
 
 export class CreateProductDto {
 
@@ -14,6 +14,7 @@ export class CreateProductDto {
         }
     )
     @IsString()
+    @IsNotEmpty()
     readonly name: string;
 
     @ApiProperty(
@@ -35,6 +36,8 @@ export class CreateProductDto {
         }
     )
     @IsNumber()
+    @IsNotEmpty()
+    @IsPositive()
     readonly price: number;
 
     @ApiProperty(
@@ -45,6 +48,7 @@ export class CreateProductDto {
         }
     )
     @IsString()
+    @IsNotEmpty()
     readonly categoryID: string;
 
     @ApiProperty(
@@ -55,6 +59,8 @@ export class CreateProductDto {
         }
     )
     @IsNumber()
+    @IsNotEmpty()
+    @IsPositive()
     readonly rating: number;
 
     @ApiProperty(
@@ -65,6 +71,7 @@ export class CreateProductDto {
         }
     )
     @IsString()
+    @IsNotEmpty()
     readonly image: string;
 
 

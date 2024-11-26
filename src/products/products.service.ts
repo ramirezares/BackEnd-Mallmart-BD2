@@ -3,6 +3,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { Neo4jConnectionService } from 'src/neo4j-connection/neo4j-connection.service';
 import { Session } from 'neo4j-driver';
 import { AddToCartDto } from './dto/addToCart-product.dto';
+import { error } from 'console';
 
 @Injectable()
 export class ProductsService {
@@ -199,34 +200,39 @@ export class ProductsService {
       throw new NotFoundException('No se encontró el producto')
     }
     try {
+      const productPrice = product.records[0].get('p').properties.price
+
       //Verifico si el producto ya esta en el carrito
       const result = await session.run(
         `MATCH (c:Cart {userEmail:$userEmail})-[r:REGISTER]->(p:Product {productId:$productId})
-      RETURN r`,
+         RETURN r`,
         { userEmail: userEmail, productId: productId }
       )
       if (result.records.length > 0) {
-        //Si el producto ya esta en el carrito sumo 1 al atributo quantity
+        // Si el producto ya esta en el carrito sumo 1 al atributo quantity,
+        // sumo al monto del carrito y actualizo la fecha de la relacion ADD
         const resultAddingMore = await session.run(
           `MATCH (c:Cart {userEmail:$userEmail})-[r:REGISTER]->(p:Product {productId: $productId})
-        SET r.registerDate = $dateAdded , r.quantity = r.quantity + 1`
-          ,
-          { userEmail: userEmail, productId: productId, dateAdded: dateAdded }
+           SET r.registerDate = $dateAdded , r.quantity = r.quantity + 1, c.totalAmount = c.totalAmount + $productPrice, c.totalQuantity = c.totalQuantity + 1
+           WITH c
+           MATCH (u:User {userEmail:$userEmail})-[r:ADD_PRODUCT {productId:$productId}]->(c)
+           SET r.dateAdded = $dateAdded`,
+          { userEmail: userEmail, productId: productId, dateAdded: dateAdded, productPrice: productPrice }
         )
         await session.close()
         return { message: 'Producto agregado exitosamente' };
       }
-      //Si no esta en el carrito lo agrego
       else {
-        //Agrego al carrito del usuario
+        ///Si no esta en el carrito lo agrego
         const result = await session.run(
           `MATCH (u:User {userEmail:$userEmail}),
                  (c:Cart {userEmail:$userEmail}),
                  (p:Product {productId:$productId})
-           CREATE (u)-[:ADD_PRODUCT {dateAdded: $dateAdded}]->(c)
+           CREATE (u)-[:ADD_PRODUCT {dateAdded: $dateAdded, productId:$productId}]->(c)
            WITH c, p
-           CREATE (c)-[:REGISTER {registerDate: $dateAdded, quantity: 1}]->(p)`,
-          { userEmail: userEmail, productId: productId, dateAdded: dateAdded, quantity: quantity }
+           CREATE (c)-[:REGISTER {registerDate: $dateAdded, quantity: $quantity}]->(p)
+           SET c.totalAmount = c.totalAmount + $productPrice, c.totalQuantity = c.totalQuantity + $quantity`,
+          { userEmail: userEmail, productId: productId, dateAdded: dateAdded, productPrice: productPrice, quantity: quantity },
         )
         await session.close()
         return { message: 'Producto agregado exitosamente' };

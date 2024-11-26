@@ -1,7 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { CartService } from './cart.service';
-import { CreateCartDto } from './dto/create-cart.dto';
-import { UpdateCartDto } from './dto/update-cart.dto';
 
 @Controller('cart')
 export class CartController {
@@ -9,18 +7,14 @@ export class CartController {
 
   //TODO: Doc para Swagger
 
-  @Post('/create')
-  create(@Body() createCartDto: CreateCartDto) {
-    return this.cartService.create(createCartDto);
-  }
-
   @Get('/:userEmail')
   findOne(@Param('userEmail') userEmail: string) {
     return this.cartService.getProductsOfCart(userEmail);
   }
 
-  @Patch('/update/:userEmail') 
-  update(@Param('userEmail') userEmail: string, @Body() updateCartDto: UpdateCartDto) {
-    return this.cartService.update(userEmail, updateCartDto);
+  //TODO: Comprar: Al comprar debe guardar la categoria en engagement
+  @Post('/purchase/:userEmail')
+  purchase(@Param('userEmail') userEmail: string){
+    return this.cartService.buyProducts(userEmail);
   }
 }

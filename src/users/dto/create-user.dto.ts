@@ -1,16 +1,19 @@
-import { IsEmail, IsString, Matches } from "class-validator";
+import { IsEmail, isNotEmpty, IsNotEmpty, IsString, Matches } from "class-validator";
 
 export class CreateUserDto {
 
     //TODO - Documentar para Swagger
 
     @IsEmail()
+    @IsNotEmpty()
     readonly userEmail: string;
 
     @IsString()
+    @IsNotEmpty()
     readonly firstName: string;
 
     @IsString()
+    @IsNotEmpty()
     readonly lastName: string;
 
     @IsString()
@@ -20,6 +23,8 @@ export class CreateUserDto {
     readonly password: string;
 
     @IsString()
+    @IsNotEmpty()
     readonly address: string;
 
 }
+

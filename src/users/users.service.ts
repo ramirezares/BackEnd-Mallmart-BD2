@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { Neo4jConnectionService } from 'src/neo4j-connection/neo4j-connection.service';
@@ -12,7 +12,7 @@ export class UsersService {
 
   constructor(
     private readonly neo4jService: Neo4jConnectionService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
   ) { }
 
   async register(createUserDto: CreateUserDto) {
@@ -27,16 +27,48 @@ export class UsersService {
     );
     if (alreadyRegisteredResult.records.length > 0) {
       await session.close();
-      throw new NotFoundException('Usuario ya registrado');
+      throw new ConflictException('Usuario ya registrado');
     }
 
     // Encripto la contraseña
     const encryptedPassword = await bcrypt.hash(password, 10); //bcrypt.hashSync(password, 10);
 
-    //Creamos el usuario
+    //Inicializo el cartId, totalAmount, totalQuantity
+    const resultCartsNumber = await session.run(
+      'MATCH (n:Cart) RETURN count(n)'
+    );
+    let countTem = resultCartsNumber.records[0].get('count(n)').low;
+    const count = (countTem+1).toString()[0]
+    const totalAmount = 0
+    const totalQuantity = 0
+
+    //Creamos el usuario y su carrito
     const result = await session.run(
-      'CREATE (u:User {userEmail: $userEmail, firstName: $firstName, lastName: $lastName, password: $encryptedPassword, address: $address}) RETURN u',
-      { userEmail, firstName, lastName, encryptedPassword, address }
+      `MERGE (u:User {
+      userEmail: $userEmail, 
+      firstName: $firstName, 
+      lastName: $lastName, 
+      password: $encryptedPassword, 
+      address: $address})
+
+      MERGE (c:Cart {
+                    cartId: $count, 
+                    userEmail: $userEmail, 
+                    totalAmount: $totalAmount, 
+                    totalQuantity: $totalQuantity})
+      WITH u,c
+      CREATE (c)-[:OWNED_BY]->(u)
+      RETURN u`,
+      {
+        userEmail,
+        firstName,
+        lastName,
+        encryptedPassword,
+        address,
+        count,
+        totalAmount,
+        totalQuantity
+      }
     )
 
     const user = result.records[0].get('u').properties;
@@ -46,7 +78,7 @@ export class UsersService {
     const accessToken = this.jwtService.sign(payload,);
     await session.close();
 
-    return { ...user, accessToken };
+    return { accessToken };
   }
 
   private async verifyWithPassword(userEmail: string, password: string): Promise<any> {
@@ -67,7 +99,7 @@ export class UsersService {
     if (isPasswordValid) {
       return user;
     }
-    
+
     await session.close();
     throw new BadRequestException('Usuario o contraseña invalidos');
   }
@@ -87,33 +119,15 @@ export class UsersService {
     return result.records[0].get('u').properties;
   }
 
-  async findOne(userEmail: string) {
-    const session: Session = await this.neo4jService.getSession();
-
-    const result = await session.run(
-      'MATCH (u:User {userEmail: $userEmail}) RETURN u',
-      { userEmail: userEmail }
-    );
-
-    if (result.records.length === 0) {
-      await session.close();
-      throw new NotFoundException('Usuario no encontrado');
-    }
-
-    const user = result.records[0].get('u').properties;
-
-    return [user.userEmail, user.firstName]; 
-  }
-
   async remove(userEmail: string) {
     const session: Session = await this.neo4jService.getSession();
-    
+
     const result = await session.run(
-      'MATCH (u:User {userEmail: $userEmail}) DETACH DELETE u', 
+      'MATCH (u:User {userEmail: $userEmail}) DETACH DELETE u',
       { userEmail: userEmail }
     );
 
-    if(result.summary.counters["_stats"].nodesDeleted === 0){
+    if (result.summary.counters["_stats"].nodesDeleted === 0) {
       await session.close();
       throw new NotFoundException('Usuario no encontrado');
     }
@@ -131,10 +145,9 @@ export class UsersService {
     }
 
     const payload = { userEmail: user.userEmail, sub: user.id };
-  
-    return { 
+
+    return {
       accessToken: this.jwtService.sign(payload),
     };
-    
   }
 }
