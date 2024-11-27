@@ -242,4 +242,38 @@ export class ProductsService {
       throw new InternalServerErrorException("Error agregando el producto al carrito")
     }
   }
+
+  async getRecommendations(userEmail: string) {
+    const session: Session = await this.neo4jService.getSession();
+    try {
+      //Busco el nodo de Engagement del usuario para obtener el codigo de la categoria
+      // Relacion Engagement - [ENGAGE] -> User
+      const result = await session.run(
+        `MATCH (e:Engagement)-[:ENGAGE]->(u:User {userEmail:$userEmail})
+         RETURN e.categoryId`,
+        { userEmail: userEmail }
+      )
+      if (result.records.length > 0) {
+        const categoryId = result.records[0].get('e.categoryId')
+        //Busco los productos de la categoria y los guardo en un arreglo
+        const resultProducts = await session.run(
+          `MATCH (p:Product)-[:BELONGS_TO]->(c:Category {categoryId:$categoryId
+          }) RETURN p`,
+          { categoryId: categoryId }
+        )
+        await session.close()
+        const productsArray = resultProducts.records.map(record => record.get('p').properties)
+
+        // Obtengo el arreglo y lo ordeno segun el rating
+        const products = productsArray.sort((a, b) => b.rating - a.rating)
+
+        //Tomo los primeros 5 productos
+        const recommendations = products.slice(0, 5)
+        return recommendations
+      }
+    } catch {
+      await session.close()
+      throw new InternalServerErrorException('Error al obtener las recomendaciones')
+    }
+  }
 }

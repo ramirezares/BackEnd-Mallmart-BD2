@@ -37,7 +37,7 @@ export class UsersService {
     const resultCartsNumber = await session.run(
       'MATCH (n:Cart) RETURN count(n)'
     );
-    let countTem = resultCartsNumber.records[0].get('count(n)').low;
+    const countTem = resultCartsNumber.records[0].get('count(n)').low;
     const count = (countTem+1).toString()[0]
     const totalAmount = 0
     const totalQuantity = 0
@@ -75,7 +75,7 @@ export class UsersService {
 
     // Genero el token
     const payload = { userEmail: user.userEmail, sub: user.id };
-    const accessToken = this.jwtService.sign(payload,);
+    const accessToken = this.jwtService.sign(payload);
     await session.close();
 
     return { accessToken };
@@ -100,8 +100,7 @@ export class UsersService {
       return user;
     }
 
-    await session.close();
-    throw new BadRequestException('Usuario o contraseña invalidos');
+    return null;
   }
 
   async verifyByUserEmail(userEmail: string): Promise<any> {
@@ -140,7 +139,7 @@ export class UsersService {
 
     const user = await this.verifyWithPassword(userEmail, password);
 
-    if (user == null) {
+    if (!user) {
       throw new UnauthorizedException('Usuario o contraseña invalidos');
     }
 

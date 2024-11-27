@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { CartService } from './cart.service';
+import { EngagementDto } from './dto/engagement.dto';
 
 @Controller('cart')
 export class CartController {
@@ -12,9 +13,8 @@ export class CartController {
     return this.cartService.getProductsOfCart(userEmail);
   }
 
-  //TODO: Comprar: Al comprar debe guardar la categoria en engagement
-  @Post('/purchase/:userEmail')
-  purchase(@Param('userEmail') userEmail: string){
-    return this.cartService.buyProducts(userEmail);
+  @Post('/purchase')
+  purchase(@Body() engagementDto: EngagementDto ){
+    return this.cartService.purchaseProducts(engagementDto);
   }
 }

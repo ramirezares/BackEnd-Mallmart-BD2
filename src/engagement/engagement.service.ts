@@ -1,12 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { CreateEngagementDto } from './dto/create-engagement.dto';
-import { UpdateEngagementDto } from './dto/update-engagement.dto';
+import { ConflictException, Injectable } from '@nestjs/common';
+import { Neo4jConnectionService } from 'src/neo4j-connection/neo4j-connection.service';
+import { Session } from 'neo4j-driver';
 
 @Injectable()
 export class EngagementService {
-  create(createEngagementDto: CreateEngagementDto) {
-    return 'This action adds a new engagement';
-  }
+
+  constructor(private readonly neo4jService: Neo4jConnectionService) { }
 
   findAll() {
     return `This action returns all engagement`;
@@ -14,13 +13,5 @@ export class EngagementService {
 
   findOne(id: number) {
     return `This action returns a #${id} engagement`;
-  }
-
-  update(id: number, updateEngagementDto: UpdateEngagementDto) {
-    return `This action updates a #${id} engagement`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} engagement`;
   }
 }

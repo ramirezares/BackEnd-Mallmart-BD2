@@ -49,7 +49,13 @@ export class ProductsController {
   }
 
   @Delete('/erase/:id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     return this.productsService.remove(id);
+  }
+
+  //Recomendaciones
+  @Get('/recommendations/:userEmail')
+  async getRecommendations(@Param('userEmail') userEmail: string){
+    return this.productsService.getRecommendations(userEmail);
   }
 }

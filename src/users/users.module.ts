@@ -9,16 +9,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     Neo4jConnectionModule,
-    PassportModule,
+    ConfigModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
-        return {
+      useFactory: async (configService: ConfigService) => ({
           secret: configService.get('jwt.secret'),
           signOptions: { expiresIn: '7d' },
-        };
-      }
+        }),
+      inject: [ConfigService],
     }),
   ],
   controllers: [UsersController],

@@ -25,6 +25,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   // Habilito el CORS
+  //TODO: Cambiar a solo el dominio de la app
   app.enableCors(
     {
       origin: '*',

@@ -1,5 +1,5 @@
 export const EnvConfiguration = () => ({
-    
+
     neo4j: {
         uri: process.env.NEO4J_URI,
         username: process.env.NEO4J_USERNAME,
@@ -8,7 +8,5 @@ export const EnvConfiguration = () => ({
 
     jwt: {
         secret: process.env.JWT_SECRET,
-        expiresIn: process.env.JWT_EXPIRES_IN,
-    },
-    
+    }
 });
