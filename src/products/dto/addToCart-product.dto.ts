@@ -20,5 +20,5 @@ export class AddToCartDto {
 
     @IsInt()
     @IsNotEmpty()
-    readonly quantity: number = 1
+    readonly quantity: number
 }

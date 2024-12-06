@@ -211,14 +211,25 @@ export class ProductsService {
       if (result.records.length > 0) {
         // Si el producto ya esta en el carrito sumo 1 al atributo quantity,
         // sumo al monto del carrito y actualizo la fecha de la relacion ADD
-        const resultAddingMore = await session.run(
-          `MATCH (c:Cart {userEmail:$userEmail})-[r:REGISTER]->(p:Product {productId: $productId})
-           SET r.registerDate = $dateAdded , r.quantity = r.quantity + 1, c.totalAmount = c.totalAmount + $productPrice, c.totalQuantity = c.totalQuantity + 1
-           WITH c
-           MATCH (u:User {userEmail:$userEmail})-[r:ADD_PRODUCT {productId:$productId}]->(c)
-           SET r.dateAdded = $dateAdded`,
-          { userEmail: userEmail, productId: productId, dateAdded: dateAdded, productPrice: productPrice }
-        )
+        if(quantity==1){
+          const resultAddingMore = await session.run(
+            `MATCH (c:Cart {userEmail:$userEmail})-[r:REGISTER]->(p:Product {productId: $productId})
+             SET r.registerDate = $dateAdded , r.quantity = r.quantity + $quantity, c.totalAmount = c.totalAmount + $productPrice, c.totalQuantity = c.totalQuantity + $quantity
+             WITH c
+             MATCH (u:User {userEmail:$userEmail})-[r:ADD_PRODUCT {productId:$productId}]->(c)
+             SET r.dateAdded = $dateAdded`,
+            { userEmail: userEmail, productId: productId, dateAdded: dateAdded, productPrice: productPrice, quantity: quantity }
+          )
+        } else {
+          const resultAddingMore = await session.run(
+            `MATCH (c:Cart {userEmail:$userEmail})-[r:REGISTER]->(p:Product {productId: $productId})
+             SET r.registerDate = $dateAdded , r.quantity = r.quantity + $quantity, c.totalAmount = c.totalAmount - $productPrice, c.totalQuantity = c.totalQuantity + $quantity
+             WITH c
+             MATCH (u:User {userEmail:$userEmail})-[r:ADD_PRODUCT {productId:$productId}]->(c)
+             SET r.dateAdded = $dateAdded`,
+            { userEmail: userEmail, productId: productId, dateAdded: dateAdded, productPrice: productPrice, quantity: quantity }
+          )
+        }
         await session.close()
         return { message: 'Producto agregado exitosamente' };
       }
